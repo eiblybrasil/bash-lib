@@ -12,12 +12,19 @@
 # 9. Gentoo
 # 10. openSUSE
 
+###
+#
+# Variables
+#
+###
 export OS_TYPE=""
 export OS_DISTRO=""
 export OS_VERSION=""
 export OS_ARCH=""
 export OS_CODENAME=""
 export SERVICE_CMD=""
+
+SOURCE_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
 # Check OS Type (Linux or Windows)
 if [ "$(uname -s)" == "Linux" ]; then
@@ -95,11 +102,19 @@ elif [ "$OS_DISTRO" == "opensuse" ]; then
     OS_CODENAME=$(grep -oP '(?<=VERSION = ).*' /etc/SuSE-release)
 fi
 
+# Check available service command
 if command -v systemctl >/dev/null 2>&1; then
     SERVICE_CMD="systemctl"
 elif command -v service >/dev/null 2>&1; then
     SERVICE_CMD="service"
 fi
+
+###
+#
+# Imports
+#
+###
+source "$SOURCE_PATH/utils.sh"
 
 ###
 #
@@ -616,6 +631,11 @@ function doCleanPackages() {
 
 function getTimezone() {
     local timezone=$(timedatectl | grep "Time zone" | awk '{print $3}')
+    if [[ -z "$timezone" ]]; then
+        sendMessage "Unable to get timezone." "ERROR"
+        return 1
+    fi
+
     echo "$timezone"
 }
 
