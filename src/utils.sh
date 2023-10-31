@@ -39,6 +39,58 @@ function sendMessage() {
     esac
 }
 
+function sendErrorMessage() {
+    sendMessage "$1" "error"
+}
+
+function sendWarningMessage() {
+    sendMessage "$1" "warning"
+}
+
+function sendInfoMessage() {
+    sendMessage "$1" "info"
+}
+
+function sendSuccessMessage() {
+    sendMessage "$1" "success"
+}
+
+function sendOkMessage() {
+    sendMessage "$1" "ok"
+}
+
+function sendDebugMessage() {
+    sendMessage "$1" "debug"
+}
+
+# "IN" Functions
+
+function inArray() {
+    local needle="$1"
+    shift
+    local haystack=("$@")
+    local i
+    for i in "${haystack[@]}"; do
+        if [[ "$i" == "$needle" ]]; then
+            return 0
+        fi
+    done
+    return 1
+}
+
+function inArrayCaseInsensitive() {
+    local needle="$1"
+    shift
+    local haystack=("$@")
+    local i
+    for i in "${haystack[@]}"; do
+        if [[ "${i,,}" == "${needle,,}" ]]; then
+            return 0
+        fi
+    done
+    return 1
+}
+
 # "DO" Functions
 
 function doRandomPassword() {

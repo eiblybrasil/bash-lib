@@ -459,6 +459,7 @@ function doInstallPackage() {
     esac
 
     sendMessage "Unable to install $package." "WARNING"
+    sendMessage "$DEBUG" "ERROR"
     return 1
 }
 
@@ -627,9 +628,39 @@ function doCleanPackages() {
     return 1
 }
 
+function doRunScreen() {
+    local userName="$1"
+    local command="$2"
+
+    if [ -z "$userName" ]; then
+        sendMessage "No user name provided." "ERROR"
+        return 1
+    fi
+
+    if [ -z "$command" ]; then
+        sendMessage "No command provided." "ERROR"
+        return 1
+    fi
+
+    if ! isCommandExists "screen"; then
+        sendMessage "Screen is not installed." "ERROR"
+        return 1
+    fi
+
+    if ! isUserExists "$userName"; then
+        sendMessage "User $userName does not exist." "ERROR"
+        return 1
+    fi
+}
+
 # "GET" Functions
 
 function getTimezone() {
+    if ! isCommandExists "timedatectl"; then
+        sendMessage "Timedatectl is not installed." "ERROR"
+        return 1
+    fi
+
     local timezone=$(timedatectl | grep "Time zone" | awk '{print $3}')
     if [[ -z "$timezone" ]]; then
         sendMessage "Unable to get timezone." "ERROR"
@@ -649,6 +680,11 @@ function setTimezone() {
         return 1
     fi
 
+    if ! isCommandExists "timedatectl"; then
+        sendMessage "Timedatectl is not installed." "ERROR"
+        return 1
+    fi
+
     sendMessage "Trying to set timezone to $timezone..." "INFO"
     if timedatectl set-timezone "$timezone" &>/dev/null; then
         sendMessage "Timezone set to $timezone." "OK"
@@ -664,6 +700,11 @@ function setAptArchiveUrl() {
 
     if [[ -z "$url" ]]; then
         sendMessage "No URL provided." "ERROR"
+        return 1
+    fi
+
+    if ! isCommandExists "sed"; then
+        sendMessage "Sed is not installed." "ERROR"
         return 1
     fi
 
