@@ -15,6 +15,8 @@ source "$SOURCE_PATH/utils.sh"
 #
 ###
 
+# "DO" Functions
+
 function doGenerateDHParam() {
     local bits="$1"
     local output="$2"
@@ -84,7 +86,7 @@ function doGenerateCA() {
     fi
 
     if [ -z "$days" ]; then
-        days="9132" # 25 years
+        days="9150" # ~25 years
     fi
 
     # Check days is multiple of 30
@@ -184,6 +186,187 @@ function doGenerateCA() {
     return 0
 }
 
+# "GET" Functions
+
+function getCertificateDetails() {
+    local certFile="$1"
+
+    if [ -z "$certFile" ]; then
+        certFile="/etc/ssl/ca-cert.pem"
+    fi
+
+    if [ ! -f "$certFile" ]; then
+        sendErrorMessage "Cert file not found"
+        return 1
+    fi
+
+    local details=$(openssl x509 -text -noout -in "$certFile")
+    if [ $? -ne 0 ]; then
+        sendErrorMessage "Failed to get cert details"
+        return 1
+    fi
+
+    echo "$details"
+    return 0
+}
+
+function getCertificate() {
+    local certFile="$1"
+
+    if [ -z "$certFile" ]; then
+        certFile="/etc/ssl/ca-cert.pem"
+    fi
+
+    if [ ! -f "$certFile" ]; then
+        sendErrorMessage "Cert file not found"
+        return 1
+    fi
+
+    local certificate=$(openssl x509 -text -noout -in "$certFile")
+    if [ $? -ne 0 ]; then
+        sendErrorMessage "Failed to get certificate"
+        return 1
+    fi
+
+    # Map certificate to object
+    local certificateObject
+    certificateObject=$(echo "$certificate" | awk '
+        BEGIN {
+            RS = ""
+            FS = "\n"
+        }
+        {
+            for (i = 1; i <= NF; i++) {
+                if ($i ~ /^ *Serial Number:/) {
+                    serialNumber = $i
+                    sub(/^ *Serial Number: */, "", serialNumber)
+                } else if ($i ~ /^ *Signature Algorithm:/) {
+                    signatureAlgorithm = $i
+                    sub(/^ *Signature Algorithm: */, "", signatureAlgorithm)
+                } else if ($i ~ /^ *Issuer:/) {
+                    issuer = $i
+                    sub(/^ *Issuer: */, "", issuer)
+                } else if ($i ~ /^ *Validity/) {
+                    validFrom = $(i + 1)
+                    validTo = $(i + 2)
+                    sub(/^ *Not Before: */, "", validFrom)
+                    sub(/^ *Not After : */, "", validTo)
+                } else if ($i ~ /^ *Subject:/) {
+                    subject = $i
+                    sub(/^ *Subject: */, "", subject)
+                } else if ($i ~ /^ *Subject Public Key Info:/) {
+                    subjectPublicKeyInfo = $i
+                    sub(/^ *Subject Public Key Info: */, "", subjectPublicKeyInfo)
+                } else if ($i ~ /^ *X509v3 extensions:/) {
+                    x509v3Extensions = $i
+                    sub(/^ *X509v3 extensions: */, "", x509v3Extensions)
+                }
+            }
+        }
+        END {
+            printf "{\"serialNumber\":\"%s\",\"signatureAlgorithm\":\"%s\",\"issuer\":\"%s\",\"validFrom\":\"%s\",\"validTo\":\"%s\",\"subject\":\"%s\",\"subjectPublicKeyInfo\":\"%s\",\"x509v3Extensions\":\"%s\"}", serialNumber, signatureAlgorithm, issuer, validFrom, validTo, subject, subjectPublicKeyInfo, x509v3Extensions
+        }
+    ')
+
+    if [ $? -ne 0 ]; then
+        sendErrorMessage "Failed to map certificate to object"
+        return 1
+    fi
+
+    echo "$certificateObject"
+    return 0
+}
+
+function getCertificateValidFrom() {
+    local certFile="$1"
+
+    if [ -z "$certFile" ]; then
+        certFile="/etc/ssl/ca-cert.pem"
+    fi
+
+    if [ ! -f "$certFile" ]; then
+        sendErrorMessage "Cert file not found"
+        return 1
+    fi
+
+    local validFrom=$(openssl x509 -startdate -noout -in "$certFile" | sed -e 's#notBefore=##')
+    if [ $? -ne 0 ]; then
+        sendErrorMessage "Failed to get cert valid from"
+        return 1
+    fi
+
+    echo "$validFrom"
+    return 0
+}
+
+function getCertificateExpiresAt() {
+    local certFile="$1"
+
+    if [ -z "$certFile" ]; then
+        certFile="/etc/ssl/ca-cert.pem"
+    fi
+
+    if [ ! -f "$certFile" ]; then
+        sendErrorMessage "Cert file not found"
+        return 1
+    fi
+
+    local expiresAt=$(openssl x509 -enddate -noout -in "$certFile" | sed -e 's#notAfter=##')
+    if [ $? -ne 0 ]; then
+        sendErrorMessage "Failed to get cert expires at"
+        return 1
+    fi
+
+    echo "$expiresAt"
+    return 0
+}
+
+function getCertificateSerialNumber() {
+    local certFile="$1"
+
+    if [ -z "$certFile" ]; then
+        certFile="/etc/ssl/ca-cert.pem"
+    fi
+
+    if [ ! -f "$certFile" ]; then
+        sendErrorMessage "Cert file not found"
+        return 1
+    fi
+
+    local serialNumber=$(openssl x509 -serial -noout -in "$certFile" | sed -e 's#serial=##')
+    if [ $? -ne 0 ]; then
+        sendErrorMessage "Failed to get cert serial number"
+        return 1
+    fi
+
+    echo "$serialNumber"
+    return 0
+}
+
+function getCertificateIssuer() {
+    local certFile="$1"
+
+    if [ -z "$certFile" ]; then
+        certFile="/etc/ssl/ca-cert.pem"
+    fi
+
+    if [ ! -f "$certFile" ]; then
+        sendErrorMessage "Cert file not found"
+        return 1
+    fi
+
+    local issuer=$(openssl x509 -issuer -noout -in "$certFile" | sed -e 's#issuer=##')
+    if [ $? -ne 0 ]; then
+        sendErrorMessage "Failed to get cert issuer"
+        return 1
+    fi
+
+    echo "$issuer"
+    return 0
+}
+
+# "ADD" Functions
+
 function addCAToTrust() {
     local certFile="$1"
     local trustFile="$2"
@@ -218,6 +401,8 @@ function addCAToTrust() {
     return 0
 }
 
+# "REMOVE" Functions
+
 function removeCAFromTrust() {
     local certFile="$1"
     local trustFile="$2"
@@ -240,7 +425,7 @@ function removeCAFromTrust() {
     if [ ! -d "$(dirname "$trustFile")" ]; then
         mkdir -p "$(dirname "$trustFile")"
     fi
-    
+
     if [ ! -f "$trustFile" ]; then
         sendOkMessage "CA already removed from trust"
         return 0

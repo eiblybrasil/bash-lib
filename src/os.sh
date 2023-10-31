@@ -655,6 +655,7 @@ function doRunScreen() {
 
 # "GET" Functions
 
+# Get the OS timezone
 function getTimezone() {
     if ! isCommandExists "timedatectl"; then
         sendMessage "Timedatectl is not installed." "ERROR"
@@ -668,6 +669,316 @@ function getTimezone() {
     fi
 
     echo "$timezone"
+}
+
+# Get the OS Uptime
+function getUptime() {
+    local uptime=$(uptime -p | awk -F 'up' '{print $2}' | xargs echo -n)
+    if [[ -z "$uptime" ]]; then
+        sendMessage "Unable to get uptime." "ERROR"
+        return 1
+    fi
+
+    echo "$uptime"
+    return 0
+}
+
+# Get the OS Hostname
+function getHostname() {
+    local hostname=$(hostname)
+    if [[ -z "$hostname" ]]; then
+        sendMessage "Unable to get hostname." "ERROR"
+        return 1
+    fi
+
+    echo "$hostname"
+    return 0
+}
+
+# Get the OS FQDN Hostname
+function getHostnameFqdn() {
+    local hostnameFqdn=$(hostname -f)
+    if [[ -z "$hostnameFqdn" ]]; then
+        sendMessage "Unable to get hostname FQDN." "ERROR"
+        return 1
+    fi
+
+    echo "$hostnameFqdn"
+    return 0
+}
+
+# Get the OS Total Memory size
+# $1: The format (human, bytes)
+function getMemoryTotal() {
+    local format="$1"
+
+    if [ -z "$format" ]; then
+        format="bytes"
+    fi
+
+    if ! isCommandExists "free"; then
+        sendMessage "Free is not installed." "ERROR"
+        return 1
+    fi
+
+    local memoryTotal=$(free -b | grep "Mem:" | awk '{print $2}')
+    if [[ -z "$memoryTotal" ]]; then
+        sendMessage "Unable to get memory total." "ERROR"
+        return 1
+    fi
+
+    if [ "$format" == "human" ]; then
+        memoryTotal=$(doHumanBytes "$memoryTotal")
+    fi
+
+    echo "$memoryTotal"
+    return 0
+}
+
+# Get the OS Used Memory size
+# $1: The format (human, bytes)
+function getMemoryUsed() {
+    local format="$1"
+
+    if [ -z "$format" ]; then
+        format="bytes"
+    fi
+
+    if ! isCommandExists "free"; then
+        sendMessage "Free is not installed." "ERROR"
+        return 1
+    fi
+
+    local memoryUsed=$(free -b | grep "Mem:" | awk '{print $3}')
+    if [[ -z "$memoryUsed" ]]; then
+        sendMessage "Unable to get memory used." "ERROR"
+        return 1
+    fi
+
+    if [ "$format" == "human" ]; then
+        memoryUsed=$(doHumanBytes "$memoryUsed")
+    fi
+
+    echo "$memoryUsed"
+    return 0
+}
+
+# Get the OS Free Memory size
+# $1: The format (human, bytes)
+function getMemoryFree() {
+    local format="$1"
+
+    if [ -z "$format" ]; then
+        format="bytes"
+    fi
+
+    if ! isCommandExists "free"; then
+        sendMessage "Free is not installed." "ERROR"
+        return 1
+    fi
+
+    local memoryFree=$(free -b | grep "Mem:" | awk '{print $4}')
+    if [[ -z "$memoryFree" ]]; then
+        sendMessage "Unable to get memory free." "ERROR"
+        return 1
+    fi
+
+    if [ "$format" == "human" ]; then
+        memoryFree=$(doHumanBytes "$memoryFree")
+    fi
+
+    echo "$memoryFree"
+    return 0
+}
+
+# Get the OS Swap Total size
+# $1: The format (human, bytes)
+function getSwapTotal() {
+    local format="$1"
+
+    if [ -z "$format" ]; then
+        format="bytes"
+    fi
+
+    if ! isCommandExists "free"; then
+        sendMessage "Free is not installed." "ERROR"
+        return 1
+    fi
+
+    local swapTotal=$(free -b | grep "Swap:" | awk '{print $2}')
+    if [[ -z "$swapTotal" ]]; then
+        sendMessage "Unable to get swap total." "ERROR"
+        return 1
+    fi
+
+    if [ "$format" == "human" ]; then
+        swapTotal=$(doHumanBytes "$swapTotal")
+    fi
+
+    echo "$swapTotal"
+    return 0
+}
+
+# Get the OS Swap Used size
+# $1: The format (human, bytes)
+function getSwapUsed() {
+    local format="$1"
+
+    if [ -z "$format" ]; then
+        format="bytes"
+    fi
+
+    if ! isCommandExists "free"; then
+        sendMessage "Free is not installed." "ERROR"
+        return 1
+    fi
+
+    local swapUsed=$(free -b | grep "Swap:" | awk '{print $3}')
+    if [[ -z "$swapUsed" ]]; then
+        sendMessage "Unable to get swap used." "ERROR"
+        return 1
+    fi
+
+    if [ "$format" == "human" ]; then
+        swapUsed=$(doHumanBytes "$swapUsed")
+    fi
+
+    echo "$swapUsed"
+    return 0
+}
+
+# Get the OS Swap Free size
+# $1: The format (human, bytes)
+function getSwapFree() {
+    local format="$1"
+
+    if [ -z "$format" ]; then
+        format="bytes"
+    fi
+
+    if ! isCommandExists "free"; then
+        sendMessage "Free is not installed." "ERROR"
+        return 1
+    fi
+
+    local swapFree=$(free -b | grep "Swap:" | awk '{print $4}')
+    if [[ -z "$swapFree" ]]; then
+        sendMessage "Unable to get swap free." "ERROR"
+        return 1
+    fi
+
+    if [ "$format" == "human" ]; then
+        swapFree=$(doHumanBytes "$swapFree")
+    fi
+
+    echo "$swapFree"
+    return 0
+}
+
+# Get the OS Disk Total size
+# $1: The disk
+# $2: The format (human, bytes)
+function getDiskTotal() {
+    local disk="$1"
+    local format="$2"
+
+    if [ -z "$disk" ]; then
+        sendMessage "No disk provided." "ERROR"
+        return 1
+    fi
+
+    if [ -z "$format" ]; then
+        format="bytes"
+    fi
+
+    if ! isCommandExists "df"; then
+        sendMessage "Df is not installed." "ERROR"
+        return 1
+    fi
+
+    local diskTotal=$(df -B1 "$disk" | awk 'NR==2{print $2}')
+    if [[ -z "$diskTotal" ]]; then
+        sendMessage "Unable to get disk total." "ERROR"
+        return 1
+    fi
+
+    if [ "$format" == "human" ]; then
+        diskTotal=$(doHumanBytes "$diskTotal")
+    fi
+
+    echo "$diskTotal"
+    return 0
+}
+
+# Get the OS Disk Used size
+# $1: The disk
+# $2: The format (human, bytes)
+function getDiskUsed() {
+    local disk="$1"
+    local format="$2"
+
+    if [ -z "$disk" ]; then
+        sendMessage "No disk provided." "ERROR"
+        return 1
+    fi
+
+    if [ -z "$format" ]; then
+        format="bytes"
+    fi
+
+    if ! isCommandExists "df"; then
+        sendMessage "Df is not installed." "ERROR"
+        return 1
+    fi
+
+    local diskUsed=$(df -B1 "$disk" | awk 'NR==2{print $3}')
+    if [[ -z "$diskUsed" ]]; then
+        sendMessage "Unable to get disk used." "ERROR"
+        return 1
+    fi
+
+    if [ "$format" == "human" ]; then
+        diskUsed=$(doHumanBytes "$diskUsed")
+    fi
+
+    echo "$diskUsed"
+    return 0
+}
+
+# Get Machine ID
+function getMachineID() {
+    local machineID=$(cat /etc/machine-id)
+    if [[ -z "$machineID" ]]; then
+        sendErrorMessage "Unable to get machine ID."
+        return 1
+    fi
+
+    echo "$machineID"
+    return 0
+}
+
+# Get Machine Product UUID
+function getMachineProductUUID() {
+    local machineUUID=$(cat /sys/class/dmi/id/product_uuid)
+    if [[ -z "$machineUUID" ]]; then
+        sendErrorMessage "Unable to get machine product UUID."
+        return 1
+    fi
+
+    echo "$machineUUID"
+    return 0
+}
+
+# Get Machine Product Serial
+function getMachineProductSerial() {
+    local machineSerial=$(cat /sys/class/dmi/id/product_serial)
+    if [[ -z "$machineSerial" ]]; then
+        sendErrorMessage "Unable to get machine product serial."
+        return 1
+    fi
+
+    echo "$machineSerial"
+    return 0
 }
 
 # "SET" Functions
