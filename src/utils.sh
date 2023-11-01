@@ -222,6 +222,37 @@ function doRandomNumber() {
     echo
 }
 
+# Create a directory
+# $1 The path of the directory
+# $2: Create the parent directory (true, false)
+# $3: The owner
+# $4: The group
+# $5: The permissions
+function doCreateDirectory() {
+    local path="$1"
+    local createParentDirectory="$2"
+    local owner="$3"
+    local group="$4"
+    local permissions="$5"
+
+    if [ -z "$path" ]; then
+        sendErrorMessage "You must specify a path"
+        return 1
+    fi
+
+    if [ -z "$createParentDirectory" ]; then
+        createParentDirectory="false"
+    fi
+
+    if [ -z "$owner" ]; then
+        owner="root"
+    fi
+
+    if [ -z "$group" ]; then
+        group="root"
+    fi
+}
+
 # String to lowercase
 # $1: The string
 function doStringToLower() {
@@ -369,6 +400,60 @@ function doNormalizePathPermissions() {
 
     find "$path" -type d -exec chmod "$directoryPermissions" {} \;
     find "$path" -type f -exec chmod "$filePermissions" {} \;
+
+    return 0
+}
+
+# Run a command
+# $1: The command
+# $2: Print the error message (true, false)
+function doRunCommand() {
+    local command="$1"
+    local print="$2"
+
+    if [ -z "$command" ]; then
+        sendErrorMessage "You must specify a command"
+        return 1
+    fi
+
+    if [ -z "$print" ]; then
+        print="false"
+    fi
+
+    $command
+    if [ $? -ne 0 ]; then
+        if [ "$print" == "true" ]; then
+            sendErrorMessage "The command '$command' failed"
+        fi
+        return 1
+    fi
+
+    return 0
+}
+
+# Run a command (silent)
+# $1: The command
+# $2: Print the error message (true, false)
+function doRunCommandSilent() {
+    local command="$1"
+    local print="$2"
+
+    if [ -z "$command" ]; then
+        sendErrorMessage "You must specify a command"
+        return 1
+    fi
+
+    if [ -z "$print" ]; then
+        print="false"
+    fi
+
+    $command >/dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        if [ "$print" == "true" ]; then
+            sendErrorMessage "The command '$command' failed"
+        fi
+        return 1
+    fi
 
     return 0
 }
