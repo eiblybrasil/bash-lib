@@ -83,6 +83,18 @@ function sendDebugMessage() {
 ## "IS" Functions
 ###
 
+# Check if a string is empty
+# $1: The string
+function isEmpty() {
+    local value="$1"
+
+    if [ -z "$value" ]; then
+        return 0
+    fi
+
+    return 1
+}
+
 # Check if a command exists
 # $1: The command
 function isCommandExists() {
@@ -210,6 +222,18 @@ function isValidDomain() {
     return 1
 }
 
+# Check if is a valid hostname
+# $1: The hostname
+function isValidHostname() {
+    local hostname="$1"
+
+    if [[ "$hostname" =~ ^[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]$ ]]; then
+        return 0
+    fi
+
+    return 1
+}
+
 # Check if is a valid email
 # $1: The email
 function isValidEmail() {
@@ -227,8 +251,7 @@ function isValidEmail() {
 function isValidIPv4() {
     local ipv4="$1"
 
-    # Regex from: https://stackoverflow.com/questions/53497/regular-expression-that-matches-valid-ipv6-addresses
-    if [[ "$ipv4" =~ ((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]) ]]; then
+    if [[ "$ipv4" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
         return 0
     fi
 
@@ -241,7 +264,7 @@ function isValidIPv6() {
     local ipv6="$1"
 
     # Regex from: https://stackoverflow.com/questions/53497/regular-expression-that-matches-valid-ipv6-addresses
-    if [[ "$ipv6" =~ (([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])) ]]; then
+    if [[ "$ipv6" =~ ^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){6}(:[0-9a-fA-F]{1,4})|([0-9a-fA-F]{1,4}:){5}((:[0-9a-fA-F]{1,4}){1,2})|([0-9a-fA-F]{1,4}:){4}((:[0-9a-fA-F]{1,4}){1,3})|([0-9a-fA-F]{1,4}:){3}((:[0-9a-fA-F]{1,4}){1,4})|([0-9a-fA-F]{1,4}:){2}((:[0-9a-fA-F]{1,4}){1,5})|([0-9a-fA-F]{1,4}:){1}((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:) ]]; then
         return 0
     fi
 
@@ -394,6 +417,97 @@ function doCreateDirectory() {
     fi
 
     return 0
+}
+
+# Create a symlink
+# $1: The source
+# $2: The destination
+# $3: The owner (optional, default: current user)
+# $4: The group (optional, default: current user)
+# $5: The permissions (optional, default: 0755)
+function doCreateSymlink() {
+    local source="$1"
+    local destination="$2"
+    local owner="$3"
+    local group="$4"
+    local permissions="$5"
+
+    if [ -z "$source" ]; then
+        sendErrorMessage "You must specify a source"
+        return 1
+    fi
+
+    if [ -z "$destination" ]; then
+        sendErrorMessage "You must specify a destination"
+        return 1
+    fi
+
+    if [ ! -f "$source" ]; then
+        sendErrorMessage "The source '$source' does not exist"
+        return 1
+    fi
+
+    if [ -f "$destination" ]; then
+        sendErrorMessage "The destination '$destination' already exists"
+        return 1
+    fi
+
+    ln -s "$source" "$destination"
+
+    if [ $? -ne 0 ]; then
+        sendErrorMessage "The symlink '$destination' could not be created"
+        return 1
+    fi
+
+    if [ ! -z "$owner" ]; then
+        chown "$owner" "$destination"
+    fi
+
+    if [ ! -z "$group" ]; then
+        chgrp "$group" "$destination"
+    fi
+
+    if [ ! -z "$permissions" ]; then
+        chmod "$permissions" "$destination"
+    fi
+
+    return 0
+}
+
+# Delete a file
+# $1: The file
+function doDeleteFile() {
+    local file="$1"
+
+    if [ -z "$file" ]; then
+        sendErrorMessage "You must specify a file"
+        return 1
+    fi
+
+    if [ ! -f "$file" ]; then
+        sendErrorMessage "The file '$file' does not exist"
+        return 1
+    fi
+
+    rm -f "$file"
+}
+
+# Delete symlink (only the symlink)
+# $1: The symlink
+function doRemoveSymlink() {
+    local symlink="$1"
+
+    if [ -z "$symlink" ]; then
+        sendErrorMessage "You must specify a symlink"
+        return 1
+    fi
+
+    if [ ! -L "$symlink" ]; then
+        sendErrorMessage "The symlink '$symlink' does not exist"
+        return 1
+    fi
+
+    rm -f "$symlink"
 }
 
 # String to lowercase
@@ -598,6 +712,50 @@ function doRunCommandSilent() {
         return 1
     fi
 
+    return 0
+}
+
+# Replace a string (Domain Type) removing special characters, spaces and converting to lowercase
+# $1: The domain
+function doDomainToUnderDomain() {
+    local domain="$1"
+
+    if [ -z "$domain" ]; then
+        sendErrorMessage "You must specify a domain"
+        return 1
+    fi
+
+    if ! isValidDomain "$domain"; then
+        sendErrorMessage "The domain '$domain' is not valid"
+        return 1
+    fi
+
+    local underDomain=$(echo "$domain" | sed 's/\./_/g' | sed 's/-/_/g' | tr A-Z a-z)
+
+    echo "$underDomain"
+    return 0
+}
+
+# Transform a string to slug
+# $1: The string
+# $2: The separator (optional, default: '-')
+function doStringSlug() {
+    local string="$1"
+    local separator="$2"
+
+    if [ -z "$string" ]; then
+        sendErrorMessage "You must specify a string"
+        return 1
+    fi
+
+    if [ -z "$separator" ]; then
+        separator="-"
+    fi
+
+    local slug=$(echo "$string" | iconv -t ascii//TRANSLIT | sed -E 's/[~\^]+//g' | sed -E 's/[^a-zA-Z0-9]+/-/g' | sed -E 's/^-+\|-+$//g' | sed -E 's/^-+//g' | sed -E 's/-+$//g' | tr A-Z a-z)
+    slug=$(echo "$slug" | sed -E "s/-/$separator/g")
+
+    echo "$slug"
     return 0
 }
 
@@ -1174,6 +1332,10 @@ function setFileChangeTime() {
     touch -c -m -t "$changeTime" "$file"
     return 0
 }
+
+###
+## Others Functions
+###
 
 # Check string start with
 # $1: The string
