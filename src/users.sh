@@ -285,6 +285,88 @@ function getUserMaxInotifyInstances() {
 	echo "$maxInstances"
 }
 
+# Get Cron jobs from user
+# $1: The user name
+# #2: Format (optional, default: 'json', options: 'json', 'text', 'array')
+function getCronsFromUser() {
+	local userName="$1"
+	local format="$2"
+
+	if [ -z "$userName" ]; then
+		sendErrorMessage "You must specify a user name"
+		return 1
+	fi
+
+	if ! isUserExists "$userName"; then
+		sendErrorMessage "The user '$userName' does not exists"
+		return 1
+	fi
+
+	local user_crontab=$(crontab -u "$userName" -l)
+	if [ -z "$user_crontab" ]; then
+		sendWarningMessage "The user '$userName' does not have any crontab"
+		return 1
+	fi
+
+	if [ -z "$format" ]; then
+		format="json"
+	fi
+
+	if ! isCommandExists "jq"; then
+		sendErrorMessage "The command 'jq' is required"
+		return 1
+	fi
+
+	if [ "$format" == "text" ]; then
+		echo "$crons"
+		return 0
+	fi
+
+	# Initialize an empty JSON array
+	json_array="["
+
+	# Process each line of the crontab
+	while IFS= read -r line; do
+		if [[ ! $line =~ ^\s*# ]]; then
+			# This line is not a comment or a disabled line
+			json_obj="{\"enabled\": true, "
+			# Extract the fields using space as a delimiter
+			IFS=' ' read -r -a fields <<<"$line"
+			# Map the fields to JSON keys
+			json_obj+="\"minute\": \"${fields[0]}\", "
+			json_obj+="\"hour\": \"${fields[1]}\", "
+			json_obj+="\"dayOfMonth\": \"${fields[2]}\", "
+			json_obj+="\"month\": \"${fields[3]}\", "
+			json_obj+="\"dayOfWeek\": \"${fields[4]}\", "
+			# Join the remaining fields as the command
+			command="${fields[@]:5}"
+			json_obj+="\"command\": \"$command\"}"
+			json_array+=",$json_obj"
+		elif [[ $line =~ ^\# ]]; then
+			# This line is either a comment or a disabled line
+			if [[ $line =~ ^\#\s ]]; then
+				# This line is a comment with a space after #
+				comment="${line#\# }"
+				json_obj="{\"enabled\": true, \"comment\": \"$comment\"}"
+				json_array+=",$json_obj"
+			else
+				# This line is a disabled line
+				disabled_line="${line#\#}"
+				json_obj="{\"enabled\": false, \"comment\": \"$disabled_line\"}"
+				json_array+=",$json_obj"
+			fi
+		fi
+	done <<<"$user_crontab"
+
+	# Remove the leading comma and close the JSON array
+	json_array="${json_array#,}"
+	json_array+="]"
+
+	echo "$json_array"
+
+	return 0
+}
+
 ###
 ## "SET" Functions
 ###
@@ -348,6 +430,9 @@ function setUserMaxInotifyInstances() {
 ## "REMOVE" Functions
 ###
 
+# Remove a user from a group
+# $1: The user name
+# $2: The group name
 function removeUserFromGroup() {
 	local userName="$1"
 	local groupName="$2"
@@ -359,6 +444,21 @@ function removeUserFromGroup() {
 
 	if [ -z "$groupName" ]; then
 		sendErrorMessage "You must specify a group name"
+		return 1
+	fi
+
+	if ! isUserExists "$userName"; then
+		sendWarningMessage "The user '$userName' does not exists"
+		return 1
+	fi
+
+	if ! isGroupExists "$groupName"; then
+		sendWarningMessage "The group '$groupName' does not exists"
+		return 1
+	fi
+
+	if ! isUserInGroup "$userName" "$groupName"; then
+		sendWarningMessage "The user '$userName' is not in the group '$groupName'"
 		return 1
 	fi
 

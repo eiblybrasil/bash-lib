@@ -1,5 +1,7 @@
 #!/bin/bash
 
+SOURCE_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+
 ###
 ## "SEND" Functions
 ###
@@ -10,7 +12,8 @@
 function sendMessage() {
     local message="$1"
     local type="$2"
-    local prefix="\033[1m\033[0;97m[$(date +%H:%M:%S.%N | cut -b 1-10)]\033[0m "
+    local date=$(date +%H:%M:%S.%N | cut -b 1-12)
+    local prefix="\033[1m\033[0;97m[$date]\033[0m "
 
     case $type in
     INFO | info)
@@ -80,6 +83,42 @@ function sendDebugMessage() {
 ## "IS" Functions
 ###
 
+# Check if a command exists
+# $1: The command
+function isCommandExists() {
+    local command="$1"
+
+    if command -v "$command" &>/dev/null; then
+        return 0
+    fi
+
+    return 1
+}
+
+# Check if a folder exists
+# $1: The folder
+function isFolderExists() {
+    local folder="$1"
+
+    if [ -d "$folder" ]; then
+        return 0
+    fi
+
+    return 1
+}
+
+# Check if a file exists
+# $1: The file
+function isFileExists() {
+    local file="$1"
+
+    if [ -f "$file" ]; then
+        return 0
+    fi
+
+    return 1
+}
+
 # Check if a string is a valid UUIDv4
 # $1: The string
 function isValidUUIDv4() {
@@ -88,9 +127,9 @@ function isValidUUIDv4() {
 
     if [[ "$uuid" =~ $regex ]]; then
         return 0
-    else
-        return 1
     fi
+
+    return 1
 }
 
 # Check if a string is a valid alpha
@@ -101,9 +140,9 @@ function isStringAlpha() {
 
     if [[ "$string" =~ $regex ]]; then
         return 0
-    else
-        return 1
     fi
+
+    return 1
 }
 
 # Check if a number is a valid numeric
@@ -114,9 +153,9 @@ function isNumeric() {
 
     if [[ "$string" =~ $regex ]]; then
         return 0
-    else
-        return 1
     fi
+
+    return 1
 }
 
 # Check if a string is a valid alpha numeric
@@ -127,9 +166,10 @@ function isStringAlphaNumeric() {
 
     if [[ "$string" =~ $regex ]]; then
         return 0
-    else
-        return 1
     fi
+
+    return 1
+
 }
 
 # Check if a string is a valid alpha numeric with spaces
@@ -140,9 +180,9 @@ function isStringAlphaNumericWithSpaces() {
 
     if [[ "$string" =~ $regex ]]; then
         return 0
-    else
-        return 1
     fi
+
+    return 1
 }
 
 # Check if a string is a valid alpha numeric with spaces and special characters
@@ -153,9 +193,95 @@ function isStringAlphaNumericWithSpacesAndSpecialCharacters() {
 
     if [[ "$string" =~ $regex ]]; then
         return 0
-    else
-        return 1
     fi
+
+    return 1
+}
+
+# Check if is a valid domain
+# $1: The domain
+function isValidDomain() {
+    local domain="$1"
+
+    if [[ "$domain" =~ ^[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,}$ ]]; then
+        return 0
+    fi
+
+    return 1
+}
+
+# Check if is a valid email
+# $1: The email
+function isValidEmail() {
+    local email="$1"
+
+    if [[ "$email" =~ ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
+        return 0
+    fi
+
+    return 1
+}
+
+# Check if is a valid IPv4
+# $1: The IPv4
+function isValidIPv4() {
+    local ipv4="$1"
+
+    # Regex from: https://stackoverflow.com/questions/53497/regular-expression-that-matches-valid-ipv6-addresses
+    if [[ "$ipv4" =~ ((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]) ]]; then
+        return 0
+    fi
+
+    return 1
+}
+
+# Check if is a valid IPv6
+# $1: The IPv6
+function isValidIPv6() {
+    local ipv6="$1"
+
+    # Regex from: https://stackoverflow.com/questions/53497/regular-expression-that-matches-valid-ipv6-addresses
+    if [[ "$ipv6" =~ (([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])) ]]; then
+        return 0
+    fi
+
+    return 1
+}
+
+# Check if is a valid IPv4 or IPv6
+# $1: The IP
+function isValidIP() {
+    local ip="$1"
+
+    if isValidIPv4 "$ip" || isValidIPv6 "$ip"; then
+        return 0
+    fi
+
+    return 1
+}
+
+# Check if is a valid URL
+# $1: The URL
+function isValidURL() {
+    local url="$1"
+
+    if [[ "$url" =~ ^https?://[^/]+/.+$ ]]; then
+        return 0
+    fi
+
+    return 1
+}
+
+# Check if is a valid port
+# $1: The port
+function isValidPort() {
+    local port="$1"
+
+    if [[ "$port" =~ ^[0-9]+$ ]] && [ "$port" -ge 1 ] && [ "$port" -le 65535 ]; then
+        return 0
+    fi
+
+    return 1
 }
 
 ###
@@ -225,9 +351,9 @@ function doRandomNumber() {
 # Create a directory
 # $1 The path of the directory
 # $2: Create the parent directory (true, false)
-# $3: The owner
-# $4: The group
-# $5: The permissions
+# $3: The owner (optional, default: current user)
+# $4: The group (optional, default: current user)
+# $5: The permissions (optional, default: 0755)
 function doCreateDirectory() {
     local path="$1"
     local createParentDirectory="$2"
@@ -244,13 +370,30 @@ function doCreateDirectory() {
         createParentDirectory="false"
     fi
 
-    if [ -z "$owner" ]; then
-        owner="root"
+    if [ "$createParentDirectory" == "true" ]; then
+        mkdir -p "$path"
+    else
+        mkdir "$path"
     fi
 
-    if [ -z "$group" ]; then
-        group="root"
+    if [ $? -ne 0 ]; then
+        sendErrorMessage "The directory '$path' could not be created"
+        return 1
     fi
+
+    if [ ! -z "$owner" ]; then
+        chown "$owner" "$path"
+    fi
+
+    if [ ! -z "$group" ]; then
+        chgrp "$group" "$path"
+    fi
+
+    if [ ! -z "$permissions" ]; then
+        chmod "$permissions" "$path"
+    fi
+
+    return 0
 }
 
 # String to lowercase
@@ -531,7 +674,7 @@ function getFileSize() {
         return 1
     fi
 
-    if [ ! -f "$file" ]; then
+    if ! isFileExists "$file"; then
         sendErrorMessage "The file '$file' does not exist"
         return 1
     fi
@@ -636,7 +779,7 @@ function getFileChecksum() {
         return 1
     fi
 
-    if [ ! -f "$file" ]; then
+    if ! isFileExists "$file"; then
         sendErrorMessage "The file '$file' does not exist"
         return 1
     fi
@@ -666,7 +809,7 @@ function getFileExtension() {
         return 1
     fi
 
-    if [ ! -f "$file" ]; then
+    if ! isFileExists "$file"; then
         sendErrorMessage "The file '$file' does not exist"
         return 1
     fi
@@ -678,7 +821,7 @@ function getFileExtension() {
 }
 
 # Get file name
-# $1: The file
+# $1: The file (complete path)
 function getFileName() {
     local file="$1"
 
@@ -687,7 +830,7 @@ function getFileName() {
         return 1
     fi
 
-    if [ ! -f "$file" ]; then
+    if ! isFileExists "$file"; then
         sendErrorMessage "The file '$file' does not exist"
         return 1
     fi
@@ -699,7 +842,7 @@ function getFileName() {
 }
 
 # Get file name without extension
-# $1: The file
+# $1: The file (complete path)
 function getFileNameWithoutExtension() {
     local file="$1"
 
@@ -708,7 +851,7 @@ function getFileNameWithoutExtension() {
         return 1
     fi
 
-    if [ ! -f "$file" ]; then
+    if ! isFileExists "$file"; then
         sendErrorMessage "The file '$file' does not exist"
         return 1
     fi
@@ -730,7 +873,7 @@ function getFileOwner() {
         return 1
     fi
 
-    if [ ! -f "$file" ]; then
+    if ! isFileExists "$file"; then
         sendErrorMessage "The file '$file' does not exist"
         return 1
     fi
@@ -751,7 +894,7 @@ function getFileGroup() {
         return 1
     fi
 
-    if [ ! -f "$file" ]; then
+    if ! isFileExists "$file"; then
         sendErrorMessage "The file '$file' does not exist"
         return 1
     fi
@@ -772,7 +915,7 @@ function getFilePermissions() {
         return 1
     fi
 
-    if [ ! -f "$file" ]; then
+    if ! isFileExists "$file"; then
         sendErrorMessage "The file '$file' does not exist"
         return 1
     fi
@@ -793,7 +936,7 @@ function getFileAccessTime() {
         return 1
     fi
 
-    if [ ! -f "$file" ]; then
+    if ! isFileExists "$file"; then
         sendErrorMessage "The file '$file' does not exist"
         return 1
     fi
@@ -814,7 +957,7 @@ function getFileModificationTime() {
         return 1
     fi
 
-    if [ ! -f "$file" ]; then
+    if ! isFileExists "$file"; then
         sendErrorMessage "The file '$file' does not exist"
         return 1
     fi
@@ -835,7 +978,7 @@ function getFileChangeTime() {
         return 1
     fi
 
-    if [ ! -f "$file" ]; then
+    if ! isFileExists "$file"; then
         sendErrorMessage "The file '$file' does not exist"
         return 1
     fi
@@ -855,7 +998,7 @@ function getFileType() {
         sendErrorMessage "You must specify a file"
         return 1
     fi
-    if [ ! -f "$file" ]; then
+    if ! isFileExists "$file"; then
         sendErrorMessage "The file '$file' does not exist"
         return 1
     fi
@@ -874,7 +1017,7 @@ function getFileMimeType() {
         sendErrorMessage "You must specify a file"
         return 1
     fi
-    if [ ! -f "$file" ]; then
+    if ! isFileExists "$file"; then
         sendErrorMessage "The file '$file' does not exist"
         return 1
     fi
@@ -899,7 +1042,7 @@ function setFileOwner() {
         sendErrorMessage "You must specify a file"
         return 1
     fi
-    if [ ! -f "$file" ]; then
+    if ! isFileExists "$file"; then
         sendErrorMessage "The file '$file' does not exist"
         return 1
     fi
@@ -923,7 +1066,7 @@ function setFileGroup() {
         sendErrorMessage "You must specify a file"
         return 1
     fi
-    if [ ! -f "$file" ]; then
+    if ! isFileExists "$file"; then
         sendErrorMessage "The file '$file' does not exist"
         return 1
     fi
@@ -947,7 +1090,7 @@ function setFilePermissions() {
         sendErrorMessage "You must specify a file"
         return 1
     fi
-    if [ ! -f "$file" ]; then
+    if ! isFileExists "$file"; then
         sendErrorMessage "The file '$file' does not exist"
         return 1
     fi
@@ -971,7 +1114,7 @@ function setFileAccessTime() {
         sendErrorMessage "You must specify a file"
         return 1
     fi
-    if [ ! -f "$file" ]; then
+    if ! isFileExists "$file"; then
         sendErrorMessage "The file '$file' does not exist"
         return 1
     fi
@@ -995,7 +1138,7 @@ function setFileModificationTime() {
         sendErrorMessage "You must specify a file"
         return 1
     fi
-    if [ ! -f "$file" ]; then
+    if ! isFileExists "$file"; then
         sendErrorMessage "The file '$file' does not exist"
         return 1
     fi
@@ -1019,7 +1162,7 @@ function setFileChangeTime() {
         sendErrorMessage "You must specify a file"
         return 1
     fi
-    if [ ! -f "$file" ]; then
+    if ! isFileExists "$file"; then
         sendErrorMessage "The file '$file' does not exist"
         return 1
     fi
@@ -1031,3 +1174,120 @@ function setFileChangeTime() {
     touch -c -m -t "$changeTime" "$file"
     return 0
 }
+
+# Check string start with
+# $1: The string
+# $2: The haystack
+function startsWith() {
+    local string="$1"
+    local haystack="$2"
+
+    if [ -z "$string" ]; then
+        sendErrorMessage "You must specify a string"
+        return 1
+    fi
+
+    if [ -z "$haystack" ]; then
+        sendErrorMessage "You must specify a haystack"
+        return 1
+    fi
+
+    case "$haystack" in
+    "$string"*) return 0 ;;
+    *) return 1 ;;
+    esac
+}
+
+# Check string end with
+# $1: The string
+# $2: The haystack
+function endsWith() {
+    local string="$1"
+    local haystack="$2"
+
+    if [ -z "$string" ]; then
+        sendErrorMessage "You must specify a string"
+        return 1
+    fi
+
+    if [ -z "$haystack" ]; then
+        sendErrorMessage "You must specify a haystack"
+        return 1
+    fi
+
+    case "$haystack" in
+    *"$string") return 0 ;;
+    *) return 1 ;;
+    esac
+}
+
+# Check string contains
+# $1: The string
+# $2: The substring
+function strContains() {
+    local string="$1"
+    local substring="$2"
+
+    if [ -z "$string" ]; then
+        sendErrorMessage "You must specify a string"
+        return 1
+    fi
+
+    if [ -z "$substring" ]; then
+        sendErrorMessage "You must specify a substring"
+        return 1
+    fi
+
+    if [ "${string#*$substring}" != "$string" ]; then
+        return 0
+    fi
+
+    return 1
+}
+
+# declare -A TRANSLATIONS
+
+# # List all files in directory translate
+# for file in $(ls -1 "$SOURCE_PATH/translate"); do
+#     filePath="$SOURCE_PATH/translate/$file"
+#     language=$(getFileNameWithoutExtension "$filePath")
+# done
+
+# # Translate a string
+# # $1: The string
+# # $2: The language (optional, default: en-US)
+# function __() {
+#     local string="$1"
+#     local language="$2"
+
+#     if [ -z "$string" ]; then
+#         sendErrorMessage "You must specify a string"
+#         return 1
+#     fi
+
+#     if [ -z "$language" ]; then
+#         language="en-US"
+#     fi
+
+#     if [ "$language" == "en-US" ]; then
+#         echo "$string"
+#         return 0
+#     fi
+
+#     local availableLanguages=("en-US" "pt-BR")
+#     if ! inArrayCaseInsensitive "$language" "${availableLanguages[@]}"; then
+#         sendErrorMessage "The language '$language' is not available"
+#         return 1
+#     fi
+
+#     local translation="${TRANSLATIONS[$language]}"
+#     # local key=$(echo "$string" | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')
+#     # local value=$(echo "$translation" | grep "$key=" | cut -d '=' -f2)
+
+#     # if [ -z "$value" ]; then
+#     #     echo "$string"
+#     #     return 0
+#     # fi
+
+#     return 0
+# }

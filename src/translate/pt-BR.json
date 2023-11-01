@@ -1,0 +1,7 @@
+{
+    "Service command not found!": "Comando de serviço não encontrado!",
+    "Unable to get :function": "Não foi possível obter :function",
+    "You must specify a haystack": "Você deve especificar um haystack",
+    "You must specify a string": "Você deve especificar uma string",
+    "You must specify a substring": "Você deve especificar uma substring"
+}

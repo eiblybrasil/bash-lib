@@ -1,5 +1,7 @@
 #!/bin/bash
 
+SOURCE_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+
 # Supported OS types
 # 1. CentOS
 # 2. Oracle Linux
@@ -23,8 +25,6 @@ export OS_VERSION=""
 export OS_ARCH=""
 export OS_CODENAME=""
 export SERVICE_CMD=""
-
-SOURCE_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
 # Check OS Type (Linux or Windows)
 if [ "$(uname -s)" == "Linux" ]; then
@@ -103,10 +103,13 @@ elif [ "$OS_DISTRO" == "opensuse" ]; then
 fi
 
 # Check available service command
-if command -v systemctl >/dev/null 2>&1; then
+if isCommandExists "systemctl"; then
     SERVICE_CMD="systemctl"
-elif command -v service >/dev/null 2>&1; then
+elif isCommandExists "service"; then
     SERVICE_CMD="service"
+else
+    sendMessage "Service command not found!" "ERROR"
+    exit 1
 fi
 
 ###
@@ -123,36 +126,6 @@ source "$SOURCE_PATH/utils.sh"
 ###
 
 # "IS" Functions
-
-function isCommandExists() {
-    local command="$1"
-
-    if command -v "$command" &>/dev/null; then
-        return 0
-    else
-        return 1
-    fi
-}
-
-function isFolderExists() {
-    local folder="$1"
-
-    if [ -d "$folder" ]; then
-        return 0
-    else
-        return 1
-    fi
-}
-
-function isFileExists() {
-    local file="$1"
-
-    if [ -f "$file" ]; then
-        return 0
-    else
-        return 1
-    fi
-}
 
 function isPackageInstalled() {
     local package="$1"
