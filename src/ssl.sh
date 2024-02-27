@@ -23,11 +23,11 @@ function doGenerateDHParam() {
     local fast="$3"
     local overwrite="$4"
 
-    if [ -z "$bits" ]; then
+    if isEmpty "$bits"; then
         bits="2048"
     fi
 
-    if [ -z "$output" ]; then
+    if isEmpty "$output"; then
         output="/etc/ssl/dhparam.pem"
     fi
 
@@ -74,7 +74,7 @@ function doGenerateCA() {
     local emailAddress="${13}"
     local overwrite="${14}"
 
-    if [ -z "$algorithm" ]; then
+    if isEmpty "$algorithm"; then
         algorithm="sha512"
     fi
 
@@ -85,7 +85,7 @@ function doGenerateCA() {
         return 1
     fi
 
-    if [ -z "$days" ]; then
+    if isEmpty "$days"; then
         days="9150" # ~25 years
     fi
 
@@ -95,7 +95,7 @@ function doGenerateCA() {
         return 1
     fi
 
-    if [ -z "$keyType" ]; then
+    if isEmpty "$keyType"; then
         keyType="rsa"
     fi
 
@@ -106,7 +106,7 @@ function doGenerateCA() {
         return 1
     fi
 
-    if [ -z "$keySize" ]; then
+    if isEmpty "$keySize"; then
         keySize="4096"
     fi
 
@@ -122,39 +122,39 @@ function doGenerateCA() {
         return 1
     fi
 
-    if [ -z "$keyFile" ]; then
+    if isEmpty "$keyFile"; then
         keyFile="/etc/ssl/ca-key.pem"
     fi
 
-    if [ -z "$certFile" ]; then
+    if isEmpty "$certFile"; then
         certFile="/etc/ssl/ca-cert.pem"
     fi
 
-    if [ -z "$country" ]; then
+    if isEmpty "$country"; then
         country="BR"
     fi
 
-    if [ -z "$state" ]; then
+    if isEmpty "$state"; then
         state="Sao Paulo"
     fi
 
-    if [ -z "$city" ]; then
+    if isEmpty "$city"; then
         city="Sorocaba"
     fi
 
-    if [ -z "$organization" ]; then
+    if isEmpty "$organization"; then
         organization="Eibly LTDA"
     fi
 
-    if [ -z "$organizationalUnit" ]; then
+    if isEmpty "$organizationalUnit"; then
         organizationalUnit="IT"
     fi
 
-    if [ -z "$commonName" ]; then
+    if isEmpty "$commonName"; then
         commonName="Eibly Global Root CA"
     fi
 
-    if [ -z "$emailAddress" ]; then
+    if isEmpty "$emailAddress"; then
         emailAddress="ssl@eibly.com"
     fi
 
@@ -191,11 +191,11 @@ function doGenerateCA() {
 function getCertificateDetails() {
     local certFile="$1"
 
-    if [ -z "$certFile" ]; then
+    if isEmpty "$certFile"; then
         certFile="/etc/ssl/ca-cert.pem"
     fi
 
-    if [ ! -f "$certFile" ]; then
+    if ! isFileExists "$certFile"; then
         sendErrorMessage "Cert file not found"
         return 1
     fi
@@ -213,11 +213,11 @@ function getCertificateDetails() {
 function getCertificate() {
     local certFile="$1"
 
-    if [ -z "$certFile" ]; then
+    if isEmpty "$certFile"; then
         certFile="/etc/ssl/ca-cert.pem"
     fi
 
-    if [ ! -f "$certFile" ]; then
+    if ! isFileExists "$certFile"; then
         sendErrorMessage "Cert file not found"
         return 1
     fi
@@ -280,11 +280,11 @@ function getCertificate() {
 function getCertificateValidFrom() {
     local certFile="$1"
 
-    if [ -z "$certFile" ]; then
+    if isEmpty "$certFile"; then
         certFile="/etc/ssl/ca-cert.pem"
     fi
 
-    if [ ! -f "$certFile" ]; then
+    if ! isFileExists "$certFile"; then
         sendErrorMessage "Cert file not found"
         return 1
     fi
@@ -302,11 +302,11 @@ function getCertificateValidFrom() {
 function getCertificateExpiresAt() {
     local certFile="$1"
 
-    if [ -z "$certFile" ]; then
+    if isEmpty "$certFile"; then
         certFile="/etc/ssl/ca-cert.pem"
     fi
 
-    if [ ! -f "$certFile" ]; then
+    if ! isFileExists "$certFile"; then
         sendErrorMessage "Cert file not found"
         return 1
     fi
@@ -324,11 +324,11 @@ function getCertificateExpiresAt() {
 function getCertificateSerialNumber() {
     local certFile="$1"
 
-    if [ -z "$certFile" ]; then
+    if isEmpty "$certFile"; then
         certFile="/etc/ssl/ca-cert.pem"
     fi
 
-    if [ ! -f "$certFile" ]; then
+    if ! isFileExists "$certFile"; then
         sendErrorMessage "Cert file not found"
         return 1
     fi
@@ -346,11 +346,11 @@ function getCertificateSerialNumber() {
 function getCertificateIssuer() {
     local certFile="$1"
 
-    if [ -z "$certFile" ]; then
+    if isEmpty "$certFile"; then
         certFile="/etc/ssl/ca-cert.pem"
     fi
 
-    if [ ! -f "$certFile" ]; then
+    if ! isFileExists "$certFile"; then
         sendErrorMessage "Cert file not found"
         return 1
     fi
@@ -372,11 +372,11 @@ function addCAToTrust() {
     local trustFile="$2"
     local overwrite="$3"
 
-    if [ -z "$certFile" ]; then
+    if isEmpty "$certFile"; then
         certFile="/etc/ssl/ca-cert.pem"
     fi
 
-    if [ -z "$trustFile" ]; then
+    if isEmpty "$trustFile"; then
         trustFile="/etc/ssl/certs/ca-certificates.crt"
     fi
 
@@ -407,16 +407,15 @@ function removeCAFromTrust() {
     local certFile="$1"
     local trustFile="$2"
 
-    if [ -z "$certFile" ]; then
+    if isEmpty "$certFile"; then
         certFile="/etc/ssl/ca-cert.pem"
     fi
 
-    if [ -z "$trustFile" ]; then
+    if isEmpty "$trustFile"; then
         trustFile="/etc/ssl/certs/ca-certificates.crt"
     fi
 
     # Check CA Cert already exists in trust
-
     if ! grep -q "$(cat "$certFile")" "$trustFile"; then
         sendOkMessage "CA already removed from trust"
         return 0
@@ -426,7 +425,7 @@ function removeCAFromTrust() {
         mkdir -p "$(dirname "$trustFile")"
     fi
 
-    if [ ! -f "$trustFile" ]; then
+    if ! isFileExists "$trustFile"; then
         sendOkMessage "CA already removed from trust"
         return 0
     fi

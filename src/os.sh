@@ -605,12 +605,12 @@ function doRunScreen() {
     local userName="$1"
     local command="$2"
 
-    if [ -z "$userName" ]; then
+    if isEmpty "$userName"; then
         sendMessage "No user name provided." "ERROR"
         return 1
     fi
 
-    if [ -z "$command" ]; then
+    if isEmpty "$command"; then
         sendMessage "No command provided." "ERROR"
         return 1
     fi
@@ -636,7 +636,7 @@ function getTimezone() {
     fi
 
     local timezone=$(timedatectl | grep "Time zone" | awk '{print $3}')
-    if [[ -z "$timezone" ]]; then
+    if isEmpty "$timezone"; then
         sendMessage "Unable to get timezone." "ERROR"
         return 1
     fi
@@ -647,7 +647,7 @@ function getTimezone() {
 # Get the OS Uptime
 function getUptime() {
     local uptime=$(uptime -p | awk -F 'up' '{print $2}' | xargs echo -n)
-    if [[ -z "$uptime" ]]; then
+    if isEmpty "$uptime"; then
         sendMessage "Unable to get uptime." "ERROR"
         return 1
     fi
@@ -659,7 +659,7 @@ function getUptime() {
 # Get the OS Hostname
 function getHostname() {
     local hostname=$(hostname)
-    if [[ -z "$hostname" ]]; then
+    if isEmpty "$hostname"; then
         sendMessage "Unable to get hostname." "ERROR"
         return 1
     fi
@@ -671,7 +671,7 @@ function getHostname() {
 # Get the OS FQDN Hostname
 function getHostnameFqdn() {
     local hostnameFqdn=$(hostname -f)
-    if [[ -z "$hostnameFqdn" ]]; then
+    if isEmpty "$hostnameFqdn"; then
         sendMessage "Unable to get hostname FQDN." "ERROR"
         return 1
     fi
@@ -685,7 +685,7 @@ function getHostnameFqdn() {
 function getMemoryTotal() {
     local format="$1"
 
-    if [ -z "$format" ]; then
+    if isEmpty "$format"; then
         format="bytes"
     fi
 
@@ -695,7 +695,7 @@ function getMemoryTotal() {
     fi
 
     local memoryTotal=$(free -b | grep "Mem:" | awk '{print $2}')
-    if [[ -z "$memoryTotal" ]]; then
+    if isEmpty "$memoryTotal"; then
         sendMessage "Unable to get memory total." "ERROR"
         return 1
     fi
@@ -713,7 +713,7 @@ function getMemoryTotal() {
 function getMemoryUsed() {
     local format="$1"
 
-    if [ -z "$format" ]; then
+    if isEmpty "$format"; then
         format="bytes"
     fi
 
@@ -723,7 +723,7 @@ function getMemoryUsed() {
     fi
 
     local memoryUsed=$(free -b | grep "Mem:" | awk '{print $3}')
-    if [[ -z "$memoryUsed" ]]; then
+    if isEmpty "$memoryUsed"; then
         sendMessage "Unable to get memory used." "ERROR"
         return 1
     fi
@@ -741,7 +741,7 @@ function getMemoryUsed() {
 function getMemoryFree() {
     local format="$1"
 
-    if [ -z "$format" ]; then
+    if isEmpty "$format"; then
         format="bytes"
     fi
 
@@ -751,7 +751,7 @@ function getMemoryFree() {
     fi
 
     local memoryFree=$(free -b | grep "Mem:" | awk '{print $4}')
-    if [[ -z "$memoryFree" ]]; then
+    if isEmpty "$memoryFree"; then
         sendMessage "Unable to get memory free." "ERROR"
         return 1
     fi
@@ -769,7 +769,7 @@ function getMemoryFree() {
 function getSwapTotal() {
     local format="$1"
 
-    if [ -z "$format" ]; then
+    if isEmpty "$format"; then
         format="bytes"
     fi
 
@@ -779,7 +779,7 @@ function getSwapTotal() {
     fi
 
     local swapTotal=$(free -b | grep "Swap:" | awk '{print $2}')
-    if [[ -z "$swapTotal" ]]; then
+    if isEmpty "$swapTotal"; then
         sendMessage "Unable to get swap total." "ERROR"
         return 1
     fi
@@ -797,7 +797,7 @@ function getSwapTotal() {
 function getSwapUsed() {
     local format="$1"
 
-    if [ -z "$format" ]; then
+    if isEmpty "$format"; then
         format="bytes"
     fi
 
@@ -807,7 +807,7 @@ function getSwapUsed() {
     fi
 
     local swapUsed=$(free -b | grep "Swap:" | awk '{print $3}')
-    if [[ -z "$swapUsed" ]]; then
+    if isEmpty "$swapUsed"; then
         sendMessage "Unable to get swap used." "ERROR"
         return 1
     fi
@@ -825,7 +825,7 @@ function getSwapUsed() {
 function getSwapFree() {
     local format="$1"
 
-    if [ -z "$format" ]; then
+    if isEmpty "$format"; then
         format="bytes"
     fi
 
@@ -835,7 +835,7 @@ function getSwapFree() {
     fi
 
     local swapFree=$(free -b | grep "Swap:" | awk '{print $4}')
-    if [[ -z "$swapFree" ]]; then
+    if isEmpty "$swapFree"; then
         sendMessage "Unable to get swap free." "ERROR"
         return 1
     fi
@@ -855,12 +855,12 @@ function getDiskTotal() {
     local disk="$1"
     local format="$2"
 
-    if [ -z "$disk" ]; then
+    if isEmpty "$disk"; then
         sendMessage "No disk provided." "ERROR"
         return 1
     fi
 
-    if [ -z "$format" ]; then
+    if isEmpty "$format"; then
         format="bytes"
     fi
 
@@ -870,7 +870,7 @@ function getDiskTotal() {
     fi
 
     local diskTotal=$(df -B1 "$disk" | awk 'NR==2{print $2}')
-    if [[ -z "$diskTotal" ]]; then
+    if isEmpty "$diskTotal"; then
         sendMessage "Unable to get disk total." "ERROR"
         return 1
     fi
@@ -890,12 +890,12 @@ function getDiskUsed() {
     local disk="$1"
     local format="$2"
 
-    if [ -z "$disk" ]; then
+    if isEmpty "$disk"; then
         sendMessage "No disk provided." "ERROR"
         return 1
     fi
 
-    if [ -z "$format" ]; then
+    if isEmpty "$format"; then
         format="bytes"
     fi
 
@@ -905,7 +905,7 @@ function getDiskUsed() {
     fi
 
     local diskUsed=$(df -B1 "$disk" | awk 'NR==2{print $3}')
-    if [[ -z "$diskUsed" ]]; then
+    if isEmpty "$diskUsed"; then
         sendMessage "Unable to get disk used." "ERROR"
         return 1
     fi
@@ -921,7 +921,7 @@ function getDiskUsed() {
 # Get Machine ID
 function getMachineID() {
     local machineID=$(cat /etc/machine-id)
-    if [[ -z "$machineID" ]]; then
+    if isEmpty "$machineID"; then
         sendErrorMessage "Unable to get machine ID."
         return 1
     fi
@@ -933,7 +933,7 @@ function getMachineID() {
 # Get Machine Product UUID
 function getMachineProductUUID() {
     local machineUUID=$(cat /sys/class/dmi/id/product_uuid)
-    if [[ -z "$machineUUID" ]]; then
+    if isEmpty "$machineUUID"; then
         sendErrorMessage "Unable to get machine product UUID."
         return 1
     fi
@@ -945,7 +945,7 @@ function getMachineProductUUID() {
 # Get Machine Product Serial
 function getMachineProductSerial() {
     local machineSerial=$(cat /sys/class/dmi/id/product_serial)
-    if [[ -z "$machineSerial" ]]; then
+    if isEmpty "$machineSerial"; then
         sendErrorMessage "Unable to get machine product serial."
         return 1
     fi
@@ -959,7 +959,7 @@ function getMachineProductSerial() {
 function setTimezone() {
     local timezone="$1"
 
-    if [[ -z "$timezone" ]]; then
+    if isEmpty "$timezone"; then
         sendMessage "No timezone provided." "ERROR"
         return 1
     fi
@@ -982,7 +982,7 @@ function setTimezone() {
 function setAptArchiveUrl() {
     local url="$1"
 
-    if [[ -z "$url" ]]; then
+    if isEmpty "$url"; then
         sendMessage "No URL provided." "ERROR"
         return 1
     fi
@@ -1002,10 +1002,12 @@ function setAptArchiveUrl() {
     fi
 }
 
+# Set APT security URL
+# $1: The URL
 function setAptSecurityUrl() {
     local url="$1"
 
-    if [[ -z "$url" ]]; then
+    if isEmpty "$url"; then
         sendMessage "No URL provided." "ERROR"
         return 1
     fi
@@ -1018,4 +1020,89 @@ function setAptSecurityUrl() {
         sendMessage "Unable to set APT security URL to $url." "ERROR"
         return 1
     fi
+}
+
+# Compress a file
+# $1: The file
+# $2: The output file (optional)
+# $3: Overwrite the output file (optional, default: false)
+# $4: Delete the original file (optional, default: false)
+# $5: The compress type (optional, default: zstd. Accepts: gzip, bzip2, lzma, lzop, xz, zstd, zip, rar or 7z)
+# $6: The compress level (optional)
+# $7: The compress threads (optional)
+function doCompressFile(){
+    local file="$1"
+    local outputFile="$2"
+    local overwriteFile="$3"
+    local deleteFile="$4"
+    local compressType="$5"
+    local compressLevel="$6"
+    local compressThreads="$7"
+
+    if isEmpty "$file"; then
+        sendMessage "No file provided." "ERROR"
+        return 1
+    fi
+
+    if isEmpty "$outputFile"; then
+        outputFile="$file"
+    fi
+
+    if isEmpty "$overwriteFile"; then
+        overwriteFile="false"
+    fi
+
+    if isEmpty "$deleteFile"; then
+        deleteFile="false"
+    fi
+
+    if isEmpty "$compressType"; then
+        compressType="zstd"
+    fi
+
+    if isEmpty "$compressLevel"; then
+        compressLevel="6"
+    fi
+
+    if isEmpty "$compressThreads"; then
+        compressThreads=$(getMachineThreads)
+    fi
+
+    if ! isFileExists "$file"; then
+        sendMessage "File $file does not exist." "ERROR"
+        return 1
+    fi
+
+    if [ "$overwriteFile" == "false" ] && isFileExists "$outputFile"; then
+        sendMessage "File $outputFile already exists." "ERROR"
+        return 1
+    fi
+
+    sendMessage "Trying to compress file $file..." "INFO"
+
+    case "$compressType" in
+    gzip)
+        if ! isCommandExists "pigz"; then
+            sendMessage "Pigz is not installed." "ERROR"
+            return 1
+        fi
+
+        if ! pigz -p "$compressThreads" -"$compressLevel" "$file" &>/dev/null; then
+            sendMessage "Unable to compress file $file." "ERROR"
+            return 1
+        fi
+        ;;
+    bzip2)
+        if ! isCommandExists "pbzip2"; then
+            sendMessage "Pbzip2 is not installed." "ERROR"
+            return 1
+        fi
+
+        if ! pbzip2 -p "$compressThreads" -"$compressLevel" "$file" &>/dev/null; then
+            sendMessage "Unable to compress file $file." "ERROR"
+            return 1
+        fi
+        ;;
+
+
 }

@@ -98,35 +98,35 @@ function doCreateUser() {
 	local userGroup="$6"
 	local userGroupId="$7"
 
-	if [ -z "$user" ]; then
+	if isEmpty "$user"; then
 		sendErrorMessage "You must specify a user name"
 		return 1
 	fi
 	user=$(doStringToLower "$user")
 
-	if [ -z "$password" ]; then
+	if isEmpty "$password"; then
 		password=$(doGeneratePassword)
 	elif [ "$password" == "0" ]; then
 		password=0
 	fi
 
-	if [ -z "$userId" ]; then
+	if isEmpty "$userId"; then
 		userId=0
 	fi
 
-	if [ -z "$userShell" ]; then
+	if isEmpty "$userShell"; then
 		userShell="$DEFAULT_USER_SHELL"
 	fi
 
-	if [ -z "$userHomeDir" ]; then
+	if isEmpty "$userHomeDir"; then
 		userHomeDir="/home/$user"
 	fi
 
-	if [ -z "$userGroup" ]; then
+	if isEmpty "$userGroup"; then
 		userGroup="$DEFAULT_GROUP"
 	fi
 
-	if [ -z "$userGroupId" ]; then
+	if isEmpty "$userGroupId"; then
 		userGroupId=0
 	fi
 
@@ -175,12 +175,17 @@ function doChangeUserPassword() {
 	local userName="$1"
 	local password="$2"
 
-	if [ -z "$userName" ]; then
+	if isEmpty "$userName"; then
 		userName="root"
 	fi
 
-	if [ -z "$password" ]; then
+	if isEmpty "$password"; then
 		sendErrorMessage "You must specify a password"
+		return 1
+	fi
+
+	if ! isCommandExists "passwd"; then
+		sendErrorMessage "The command 'passwd' is required"
 		return 1
 	fi
 
@@ -188,6 +193,7 @@ function doChangeUserPassword() {
 $password
 $password
 EOF
+	return 0
 }
 
 ###
@@ -202,6 +208,7 @@ function getCurrentUsername() {
 	fi
 
 	whoami
+	return 0
 }
 
 # Get current user id
@@ -212,6 +219,7 @@ function getCurrentUserId() {
 	fi
 
 	id -u
+	return 0
 }
 
 # Get User ID by name
@@ -219,7 +227,7 @@ function getCurrentUserId() {
 function getUserEx() {
 	local userName="$1"
 
-	if [ -z "$userName" ]; then
+	if isEmpty "$userName"; then
 		sendErrorMessage "You must specify a user name"
 		return 1
 	fi
@@ -238,7 +246,7 @@ function getUserEx() {
 function getGroupEx() {
 	local groupName="$1"
 
-	if [ -z "$userName" ]; then
+	if isEmpty "$userName"; then
 		sendErrorMessage "You must specify a user name"
 		return 1
 	fi
@@ -260,7 +268,7 @@ function getGroupEx() {
 function getUserMaxInotifyWatches() {
 	local userName="$1"
 
-	if [ -z "$userName" ]; then
+	if isEmpty "$userName"; then
 		sendErrorMessage "You must specify a user name"
 		return 1
 	fi
@@ -275,7 +283,7 @@ function getUserMaxInotifyWatches() {
 function getUserMaxInotifyInstances() {
 	local userName="$1"
 
-	if [ -z "$userName" ]; then
+	if isEmpty "$userName"; then
 		sendErrorMessage "You must specify a user name"
 		return 1
 	fi
@@ -292,7 +300,7 @@ function getCronsFromUser() {
 	local userName="$1"
 	local format="$2"
 
-	if [ -z "$userName" ]; then
+	if isEmpty "$userName"; then
 		sendErrorMessage "You must specify a user name"
 		return 1
 	fi
@@ -303,12 +311,12 @@ function getCronsFromUser() {
 	fi
 
 	local user_crontab=$(crontab -u "$userName" -l)
-	if [ -z "$user_crontab" ]; then
+	if isEmpty "$user_crontab"; then
 		sendWarningMessage "The user '$userName' does not have any crontab"
 		return 1
 	fi
 
-	if [ -z "$format" ]; then
+	if isEmpty "$format"; then
 		format="json"
 	fi
 
@@ -375,12 +383,12 @@ function setUserToGroup() {
 	local userName="$1"
 	local groupName="$2"
 
-	if [ -z "$userName" ]; then
+	if isEmpty "$userName"; then
 		sendErrorMessage "You must specify a user name"
 		return 1
 	fi
 
-	if [ -z "$groupName" ]; then
+	if isEmpty "$groupName"; then
 		sendErrorMessage "You must specify a group name"
 		return 1
 	fi
@@ -392,12 +400,12 @@ function setUserMaxInotifyWatches() {
 	local userName="$1"
 	local maxWatches="$2"
 
-	if [ -z "$userName" ]; then
+	if isEmpty "$userName"; then
 		sendErrorMessage "You must specify a user name"
 		return 1
 	fi
 
-	if [ -z "$maxWatches" ]; then
+	if isEmpty "$maxWatches"; then
 		sendErrorMessage "You must specify a max watches value"
 		return 1
 	fi
@@ -411,12 +419,12 @@ function setUserMaxInotifyInstances() {
 	local userName="$1"
 	local maxInstances="$2"
 
-	if [ -z "$userName" ]; then
+	if isEmpty "$userName"; then
 		sendErrorMessage "You must specify a user name"
 		return 1
 	fi
 
-	if [ -z "$maxInstances" ]; then
+	if isEmpty "$maxInstances"; then
 		sendErrorMessage "You must specify a max instances value"
 		return 1
 	fi
@@ -437,12 +445,12 @@ function removeUserFromGroup() {
 	local userName="$1"
 	local groupName="$2"
 
-	if [ -z "$userName" ]; then
+	if isEmpty "$userName"; then
 		sendErrorMessage "You must specify a user name"
 		return 1
 	fi
 
-	if [ -z "$groupName" ]; then
+	if isEmpty "$groupName"; then
 		sendErrorMessage "You must specify a group name"
 		return 1
 	fi

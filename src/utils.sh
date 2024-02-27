@@ -384,19 +384,19 @@ function doCreateDirectory() {
     local group="$4"
     local permissions="$5"
 
-    if [ -z "$path" ]; then
+    if isEmpty "$path"; then
         sendErrorMessage "You must specify a path"
         return 1
     fi
 
-    if [ -z "$createParentDirectory" ]; then
+    if isEmpty "$createParentDirectory"; then
         createParentDirectory="false"
     fi
 
     if [ "$createParentDirectory" == "true" ]; then
-        mkdir -p "$path"
+        mkdir -p "$path" >/dev/null 2>&1
     else
-        mkdir "$path"
+        mkdir "$path" >/dev/null 2>&1
     fi
 
     if [ $? -ne 0 ]; then
@@ -404,15 +404,15 @@ function doCreateDirectory() {
         return 1
     fi
 
-    if [ ! -z "$owner" ]; then
+    if ! isEmpty "$owner"; then
         chown "$owner" "$path"
     fi
 
-    if [ ! -z "$group" ]; then
+    if ! isEmpty "$group"; then
         chgrp "$group" "$path"
     fi
 
-    if [ ! -z "$permissions" ]; then
+    if ! isEmpty "$permissions"; then
         chmod "$permissions" "$path"
     fi
 
@@ -432,12 +432,12 @@ function doCreateSymlink() {
     local group="$4"
     local permissions="$5"
 
-    if [ -z "$source" ]; then
+    if isEmpty "$source"; then
         sendErrorMessage "You must specify a source"
         return 1
     fi
 
-    if [ -z "$destination" ]; then
+    if isEmpty "$destination"; then
         sendErrorMessage "You must specify a destination"
         return 1
     fi
@@ -447,27 +447,27 @@ function doCreateSymlink() {
         return 1
     fi
 
-    if [ -f "$destination" ]; then
+    if isFileExists "$destination"; then
         sendErrorMessage "The destination '$destination' already exists"
         return 1
     fi
 
-    ln -s "$source" "$destination"
+    ln -s "$source" "$destination" >/dev/null 2>&1
 
     if [ $? -ne 0 ]; then
         sendErrorMessage "The symlink '$destination' could not be created"
         return 1
     fi
 
-    if [ ! -z "$owner" ]; then
+    if ! isEmpty "$owner"; then
         chown "$owner" "$destination"
     fi
 
-    if [ ! -z "$group" ]; then
+    if ! isEmpty "$group"; then
         chgrp "$group" "$destination"
     fi
 
-    if [ ! -z "$permissions" ]; then
+    if ! isEmpty "$permissions"; then
         chmod "$permissions" "$destination"
     fi
 
@@ -479,7 +479,7 @@ function doCreateSymlink() {
 function doDeleteFile() {
     local file="$1"
 
-    if [ -z "$file" ]; then
+    if isEmpty "$file"; then
         sendErrorMessage "You must specify a file"
         return 1
     fi
@@ -489,7 +489,7 @@ function doDeleteFile() {
         return 1
     fi
 
-    rm -f "$file"
+    rm -f "$file" >/dev/null 2>&1
 }
 
 # Delete symlink (only the symlink)
@@ -497,7 +497,7 @@ function doDeleteFile() {
 function doRemoveSymlink() {
     local symlink="$1"
 
-    if [ -z "$symlink" ]; then
+    if isEmpty "$symlink"; then
         sendErrorMessage "You must specify a symlink"
         return 1
     fi
@@ -507,7 +507,7 @@ function doRemoveSymlink() {
         return 1
     fi
 
-    rm -f "$symlink"
+    rm -f "$symlink" >/dev/null 2>&1
 }
 
 # String to lowercase
@@ -609,12 +609,12 @@ function doGenerateUUIDv5() {
     # X500: 6ba7b814-9dad-11d1-80b4-00c04fd430c8
     # nil: 00000000-0000-0000-0000-000000000000
 
-    if [ -z "$namespace" ]; then
+    if isEmpty "$namespace"; then
         sendErrorMessage "You must specify a namespace"
         return 1
     fi
 
-    if [ -z "$name" ]; then
+    if isEmpty "$name"; then
         sendErrorMessage "You must specify a name"
         return 1
     fi
@@ -637,16 +637,16 @@ function doNormalizePathPermissions() {
     local directoryPermissions="$2"
     local filePermissions="$3"
 
-    if [ -z "$path" ]; then
+    if isEmpty "$path"; then
         sendErrorMessage "You must specify a path"
         return 1
     fi
 
-    if [ ! -z "$directoryPermissions" ]; then
+    if ! isEmpty "$directoryPermissions"; then
         directoryPermissions="0755"
     fi
 
-    if [ ! -z "$filePermissions" ]; then
+    if ! isEmpty "$filePermissions"; then
         filePermissions="0644"
     fi
 
@@ -668,12 +668,12 @@ function doRunCommand() {
     local command="$1"
     local print="$2"
 
-    if [ -z "$command" ]; then
+    if isEmpty "$command"; then
         sendErrorMessage "You must specify a command"
         return 1
     fi
 
-    if [ -z "$print" ]; then
+    if isEmpty "$print"; then
         print="false"
     fi
 
@@ -695,12 +695,12 @@ function doRunCommandSilent() {
     local command="$1"
     local print="$2"
 
-    if [ -z "$command" ]; then
+    if isEmpty "$command"; then
         sendErrorMessage "You must specify a command"
         return 1
     fi
 
-    if [ -z "$print" ]; then
+    if isEmpty "$print"; then
         print="false"
     fi
 
@@ -720,7 +720,7 @@ function doRunCommandSilent() {
 function doDomainToUnderDomain() {
     local domain="$1"
 
-    if [ -z "$domain" ]; then
+    if isEmpty "$domain"; then
         sendErrorMessage "You must specify a domain"
         return 1
     fi
@@ -743,12 +743,12 @@ function doStringSlug() {
     local string="$1"
     local separator="$2"
 
-    if [ -z "$string" ]; then
+    if isEmpty "$string"; then
         sendErrorMessage "You must specify a string"
         return 1
     fi
 
-    if [ -z "$separator" ]; then
+    if isEmpty "$separator"; then
         separator="-"
     fi
 
@@ -759,15 +759,6 @@ function doStringSlug() {
     return 0
 }
 
-###
-## "GET" Functions
-###
-
-# Get the current date and time
-function getCurrentDateTime() {
-    date +"%Y-%m-%d %H:%M:%S"
-}
-
 # Format a date
 # $1: The date
 # $2: The format
@@ -775,12 +766,12 @@ function doFormatDate() {
     local date="$1"
     local format="$2"
 
-    if [ -z "$date" ]; then
+    if isEmpty "$date"; then
         sendErrorMessage "You must specify a date"
         return 1
     fi
 
-    if [ -z "$format" ]; then
+    if isEmpty "$format"; then
         sendErrorMessage "You must specify a format"
         return 1
     fi
@@ -789,6 +780,37 @@ function doFormatDate() {
 
     echo "$formatedDate"
     return 0
+}
+
+###
+## "GET" Functions
+###
+
+# Get machine Thread(s)
+function getMachineThreads() {
+    local threads=""
+
+    if isCommandExists "nproc"; then
+        threads=$(nproc)
+
+        echo "$threads"
+        return 0
+    fi
+
+    threads=$(grep -c ^processor /proc/cpuinfo)
+
+    if isEmpty "$threads"; then
+        sendErrorMessage "The threads could not be obtained"
+        return 1
+    fi
+
+    echo "$threads"
+    return 0
+}
+
+# Get the current date and time
+function getCurrentDateTime() {
+    date +"%Y-%m-%d %H:%M:%S"
 }
 
 # Get the difference between two dates
@@ -827,7 +849,7 @@ function getFileSize() {
     local file="$1"
     local format="$2"
 
-    if [ -z "$file" ]; then
+    if isEmpty "$file"; then
         sendErrorMessage "You must specify a file"
         return 1
     fi
@@ -837,7 +859,7 @@ function getFileSize() {
         return 1
     fi
 
-    if [ -z "$format" ]; then
+    if isEmpty "$format"; then
         format="bytes"
     fi
 
@@ -856,7 +878,7 @@ function getFileSize() {
 function getDirectorySize() {
     local directory="$1"
 
-    if [ -z "$directory" ]; then
+    if isEmpty "$directory"; then
         sendErrorMessage "You must specify a directory"
         return 1
     fi
@@ -866,7 +888,7 @@ function getDirectorySize() {
         return 1
     fi
 
-    if [ -z "$format" ]; then
+    if isEmpty "$format"; then
         format="bytes"
     fi
 
@@ -884,7 +906,7 @@ function getDirectorySize() {
 function getDirectoryFiles() {
     local directory="$1"
 
-    if [ -z "$directory" ]; then
+    if isEmpty "$directory"; then
         sendErrorMessage "You must specify a directory"
         return 1
     fi
@@ -909,7 +931,7 @@ function getDirectoryFiles() {
 function getDirectoryFilesCount() {
     local directory="$1"
 
-    if [ -z "$directory" ]; then
+    if isEmpty "$directory"; then
         sendErrorMessage "You must specify a directory"
         return 1
     fi
@@ -932,7 +954,7 @@ function getFileChecksum() {
     local file="$1"
     local algorithm="$2"
 
-    if [ -z "$file" ]; then
+    if isEmpty "$file"; then
         sendErrorMessage "You must specify a file"
         return 1
     fi
@@ -942,7 +964,7 @@ function getFileChecksum() {
         return 1
     fi
 
-    if [ -z "$algorithm" ]; then
+    if isEmpty "$algorithm"; then
         algorithm="sha256"
     fi
 
@@ -962,7 +984,7 @@ function getFileChecksum() {
 function getFileExtension() {
     local file="$1"
 
-    if [ -z "$file" ]; then
+    if isEmpty "$file"; then
         sendErrorMessage "You must specify a file"
         return 1
     fi
@@ -983,7 +1005,7 @@ function getFileExtension() {
 function getFileName() {
     local file="$1"
 
-    if [ -z "$file" ]; then
+    if isEmpty "$file"; then
         sendErrorMessage "You must specify a file"
         return 1
     fi
@@ -1004,7 +1026,7 @@ function getFileName() {
 function getFileNameWithoutExtension() {
     local file="$1"
 
-    if [ -z "$file" ]; then
+    if isEmpty "$file"; then
         sendErrorMessage "You must specify a file"
         return 1
     fi
@@ -1026,7 +1048,7 @@ function getFileNameWithoutExtension() {
 function getFileOwner() {
     local file="$1"
 
-    if [ -z "$file" ]; then
+    if isEmpty "$file"; then
         sendErrorMessage "You must specify a file"
         return 1
     fi
@@ -1047,7 +1069,7 @@ function getFileOwner() {
 function getFileGroup() {
     local file="$1"
 
-    if [ -z "$file" ]; then
+    if isEmpty "$file"; then
         sendErrorMessage "You must specify a file"
         return 1
     fi
@@ -1068,7 +1090,7 @@ function getFileGroup() {
 function getFilePermissions() {
     local file="$1"
 
-    if [ -z "$file" ]; then
+    if isEmpty "$file"; then
         sendErrorMessage "You must specify a file"
         return 1
     fi
@@ -1089,7 +1111,7 @@ function getFilePermissions() {
 function getFileAccessTime() {
     local file="$1"
 
-    if [ -z "$file" ]; then
+    if isEmpty "$file"; then
         sendErrorMessage "You must specify a file"
         return 1
     fi
@@ -1110,7 +1132,7 @@ function getFileAccessTime() {
 function getFileModificationTime() {
     local file="$1"
 
-    if [ -z "$file" ]; then
+    if isEmpty "$file"; then
         sendErrorMessage "You must specify a file"
         return 1
     fi
@@ -1131,7 +1153,7 @@ function getFileModificationTime() {
 function getFileChangeTime() {
     local file="$1"
 
-    if [ -z "$file" ]; then
+    if isEmpty "$file"; then
         sendErrorMessage "You must specify a file"
         return 1
     fi
@@ -1152,7 +1174,7 @@ function getFileChangeTime() {
 function getFileType() {
     local file="$1"
 
-    if [ -z "$file" ]; then
+    if isEmpty "$file"; then
         sendErrorMessage "You must specify a file"
         return 1
     fi
@@ -1171,7 +1193,7 @@ function getFileType() {
 function getFileMimeType() {
     local file="$1"
 
-    if [ -z "$file" ]; then
+    if isEmpty "$file"; then
         sendErrorMessage "You must specify a file"
         return 1
     fi
@@ -1196,16 +1218,18 @@ function setFileOwner() {
     local file="$1"
     local owner="$2"
 
-    if [ -z "$file" ]; then
+    if isEmpty "$file"; then
         sendErrorMessage "You must specify a file"
         return 1
     fi
-    if ! isFileExists "$file"; then
-        sendErrorMessage "The file '$file' does not exist"
+
+    if isEmpty "$owner"; then
+        sendErrorMessage "You must specify a owner"
         return 1
     fi
-    if [ -z "$owner" ]; then
-        sendErrorMessage "You must specify a owner"
+
+    if ! isFileExists "$file"; then
+        sendErrorMessage "The file '$file' does not exist"
         return 1
     fi
 
@@ -1220,16 +1244,18 @@ function setFileGroup() {
     local file="$1"
     local group="$2"
 
-    if [ -z "$file" ]; then
+    if isEmpty "$file"; then
         sendErrorMessage "You must specify a file"
         return 1
     fi
-    if ! isFileExists "$file"; then
-        sendErrorMessage "The file '$file' does not exist"
+
+    if isEmpty "$group"; then
+        sendErrorMessage "You must specify a group"
         return 1
     fi
-    if [ -z "$group" ]; then
-        sendErrorMessage "You must specify a group"
+
+    if ! isFileExists "$file"; then
+        sendErrorMessage "The file '$file' does not exist"
         return 1
     fi
 
@@ -1244,16 +1270,18 @@ function setFilePermissions() {
     local file="$1"
     local permissions="$2"
 
-    if [ -z "$file" ]; then
+    if isEmpty "$file"; then
         sendErrorMessage "You must specify a file"
         return 1
     fi
-    if ! isFileExists "$file"; then
-        sendErrorMessage "The file '$file' does not exist"
+
+    if isEmpty "$permissions"; then
+        sendErrorMessage "You must specify a permissions"
         return 1
     fi
-    if [ -z "$permissions" ]; then
-        sendErrorMessage "You must specify a permissions"
+
+    if ! isFileExists "$file"; then
+        sendErrorMessage "The file '$file' does not exist"
         return 1
     fi
 
@@ -1268,16 +1296,18 @@ function setFileAccessTime() {
     local file="$1"
     local accessTime="$2"
 
-    if [ -z "$file" ]; then
+    if isEmpty "$file"; then
         sendErrorMessage "You must specify a file"
         return 1
     fi
-    if ! isFileExists "$file"; then
-        sendErrorMessage "The file '$file' does not exist"
+
+    if isEmpty "$accessTime"; then
+        sendErrorMessage "You must specify a access time"
         return 1
     fi
-    if [ -z "$accessTime" ]; then
-        sendErrorMessage "You must specify a access time"
+
+    if ! isFileExists "$file"; then
+        sendErrorMessage "The file '$file' does not exist"
         return 1
     fi
 
@@ -1292,16 +1322,18 @@ function setFileModificationTime() {
     local file="$1"
     local modificationTime="$2"
 
-    if [ -z "$file" ]; then
+    if isEmpty "$file"; then
         sendErrorMessage "You must specify a file"
         return 1
     fi
-    if ! isFileExists "$file"; then
-        sendErrorMessage "The file '$file' does not exist"
+
+    if isEmpty "$modificationTime"; then
+        sendErrorMessage "You must specify a modification time"
         return 1
     fi
-    if [ -z "$modificationTime" ]; then
-        sendErrorMessage "You must specify a modification time"
+
+    if ! isFileExists "$file"; then
+        sendErrorMessage "The file '$file' does not exist"
         return 1
     fi
 
@@ -1316,16 +1348,18 @@ function setFileChangeTime() {
     local file="$1"
     local changeTime="$2"
 
-    if [ -z "$file" ]; then
+    if isEmpty "$file"; then
         sendErrorMessage "You must specify a file"
         return 1
     fi
-    if ! isFileExists "$file"; then
-        sendErrorMessage "The file '$file' does not exist"
+
+    if isEmpty "$changeTime"; then
+        sendErrorMessage "You must specify a change time"
         return 1
     fi
-    if [ -z "$changeTime" ]; then
-        sendErrorMessage "You must specify a change time"
+
+    if ! isFileExists "$file"; then
+        sendErrorMessage "The file '$file' does not exist"
         return 1
     fi
 
@@ -1344,12 +1378,12 @@ function startsWith() {
     local string="$1"
     local haystack="$2"
 
-    if [ -z "$string" ]; then
+    if isEmpty "$string"; then
         sendErrorMessage "You must specify a string"
         return 1
     fi
 
-    if [ -z "$haystack" ]; then
+    if isEmpty "$haystack"; then
         sendErrorMessage "You must specify a haystack"
         return 1
     fi
@@ -1367,12 +1401,12 @@ function endsWith() {
     local string="$1"
     local haystack="$2"
 
-    if [ -z "$string" ]; then
+    if isEmpty "$string"; then
         sendErrorMessage "You must specify a string"
         return 1
     fi
 
-    if [ -z "$haystack" ]; then
+    if isEmpty "$haystack"; then
         sendErrorMessage "You must specify a haystack"
         return 1
     fi
@@ -1390,12 +1424,12 @@ function strContains() {
     local string="$1"
     local substring="$2"
 
-    if [ -z "$string" ]; then
+    if isEmpty "$string"; then
         sendErrorMessage "You must specify a string"
         return 1
     fi
 
-    if [ -z "$substring" ]; then
+    if isEmpty "$substring"; then
         sendErrorMessage "You must specify a substring"
         return 1
     fi
@@ -1405,6 +1439,64 @@ function strContains() {
     fi
 
     return 1
+}
+
+# Create a sha1 hash
+# $1: The string
+function sha1() {
+    local string="$1"
+
+    if isEmpty "$string"; then
+        sendErrorMessage "You must specify a string"
+        return 1
+    fi
+
+    if ! isCommandExists "sha1sum"; then
+        sendErrorMessage "The command 'sha1sum' is not available"
+        return 1
+    fi
+
+    echo -n "$string" | sha1sum | awk '{print $1}'
+    return 0
+}
+
+function bcrypt() {
+    local string="$1"
+    local cost="${2:-10}"
+
+    if isEmpty "$string"; then
+        sendErrorMessage "You must specify a string"
+        return 1
+    fi
+
+    if isEmpty "$cost"; then
+        cost="10"
+    fi
+
+    if ! isCommandExists "htpasswd"; then
+        sendErrorMessage "The command 'htpasswd' is not available"
+        return 1
+    fi
+
+    echo -n "$string" | htpasswd -bnBC "$cost" "" | tr -d ':\n'
+    return 0
+}
+
+function md5() {
+    local string="$1"
+
+    if isEmpty "$string"; then
+        sendErrorMessage "You must specify a string"
+        return 1
+    fi
+
+    if ! isCommandExists "md5sum"; then
+        sendErrorMessage "The command 'md5sum' is not available"
+        return 1
+    fi
+
+    echo -n "$string" | md5sum | awk '{print $1}'
+    return 0
 }
 
 # declare -A TRANSLATIONS
@@ -1422,12 +1514,12 @@ function strContains() {
 #     local string="$1"
 #     local language="$2"
 
-#     if [ -z "$string" ]; then
+#     if isEmpty "$string"; then
 #         sendErrorMessage "You must specify a string"
 #         return 1
 #     fi
 
-#     if [ -z "$language" ]; then
+#     if isEmpty "$language"; then
 #         language="en-US"
 #     fi
 
@@ -1446,7 +1538,7 @@ function strContains() {
 #     # local key=$(echo "$string" | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')
 #     # local value=$(echo "$translation" | grep "$key=" | cut -d '=' -f2)
 
-#     # if [ -z "$value" ]; then
+#     # if isEmpty "$value"; then
 #     #     echo "$string"
 #     #     return 0
 #     # fi

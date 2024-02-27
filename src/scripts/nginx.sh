@@ -17,6 +17,7 @@ source "$SOURCE_PATH/os.sh"
 #
 ###
 
+NGINX_DIRECTORY="/etc/nginx"
 CACHE_DIRECTORY="/var/cache/nginx"
 
 # Create a directory for cache
@@ -97,8 +98,8 @@ function doCreateLoadBalancer() {
     name=$(doStringSlug "$name" "_")
 
     local load_balancer_id=$(doGenerateUUIDv4)
-    local file="/etc/nginx/upstream-available/$load_balancer_id.conf"
-    local load_balancer=$(printf "%s\n" "" \
+    local file="$NGINX_DIRECTORY/upstream-available/$load_balancer_id.conf"
+    local load_balancer=$(printf "%s\n" \
         "# Load Balancer ID: $load_balancer_id, Name: $name" \
         "upstream lb_${domain}_${name} {")
     servers=$(echo "$servers" | tr "," "\n")
@@ -166,13 +167,18 @@ function doEnableLoadBalancer() {
         return 1
     fi
 
-    local file="/etc/nginx/upstream-available/$load_balancer_id.conf"
+    if isValidUUIDv4 "$load_balancer_id"; then
+        sendErrorMessage "The load balancer ID '$load_balancer_id' is not valid."
+        return 1
+    fi
+
+    local file="$NGINX_DIRECTORY/upstream-available/$load_balancer_id.conf"
     if ! isFileExists "$file"; then
         sendErrorMessage "The load balancer '$load_balancer_id' not exists."
         return 1
     fi
 
-    local file_link="/etc/nginx/upstream-enabled/$load_balancer_id.conf"
+    local file_link="$NGINX_DIRECTORY/upstream-enabled/$load_balancer_id.conf"
     if isFileExists "$file_link"; then
         sendErrorMessage "The load balancer '$load_balancer_id' already enabled."
         return 1
@@ -196,7 +202,12 @@ function doDisableLoadBalancer() {
         return 1
     fi
 
-    local file_link="/etc/nginx/upstream-enabled/$load_balancer_id.conf"
+    if isValidUUIDv4 "$load_balancer_id"; then
+        sendErrorMessage "The load balancer ID '$load_balancer_id' is not valid."
+        return 1
+    fi
+
+    local file_link="$NGINX_DIRECTORY/upstream-enabled/$load_balancer_id.conf"
     if ! isFileExists "$file_link"; then
         sendErrorMessage "The load balancer '$load_balancer_id' not enabled."
         return 1
@@ -216,4 +227,21 @@ function doDisableLoadBalancer() {
 function addServerToLoadBalancer() {
     local load_balancer_id="$1"
     local server="$2"
+
+    if isEmpty "$load_balancer_id"; then
+        sendErrorMessage "The load balancer ID is required."
+        return 1
+    fi
+
+    if isValidUUIDv4 "$load_balancer_id"; then
+        sendErrorMessage "The load balancer ID '$load_balancer_id' is not valid."
+        return 1
+    fi
+
+    local file="$NGINX_DIRECTORY/upstream-available/$load_balancer_id.conf"
+    if ! isFileExists "$file"; then
+        sendErrorMessage "The load balancer '$load_balancer_id' not exists."
+        return 1
+    fi
 }
+
